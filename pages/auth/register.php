@@ -9,7 +9,7 @@
 
     <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script src="../../assets/js/tailwind.config.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,8 +21,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
 
-    <!-- Tailwind Config -->
-    <script src="../../assets/js/tailwind.config.js"></script>
+    
 </head>
 
 <body class="gradient-bg min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -43,6 +42,23 @@
 
         <!-- Registration Form -->
         <div class="glass-dark rounded-2xl p-8 shadow-2xl">
+            <?php
+            // Display error messages if any
+            session_start();
+            if (isset($_SESSION['error'])) {
+                echo '<div class="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200">
+                        <i class="fas fa-exclamation-circle mr-2"></i>' . htmlspecialchars($_SESSION['error']) . '
+                      </div>';
+                unset($_SESSION['error']);
+            }
+            if (isset($_SESSION['success'])) {
+                echo '<div class="mb-6 p-4 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200">
+                        <i class="fas fa-check-circle mr-2"></i>' . htmlspecialchars($_SESSION['success']) . '
+                      </div>';
+                unset($_SESSION['success']);
+            }
+            ?>
+
             <form id="registerForm" action="../../actions/auth/register.action.php" method="POST" class="space-y-5">
 
                 <!-- Name Fields Row -->
@@ -214,7 +230,7 @@
 
     <!-- JavaScript -->
     <script src="../../assets/js/main.js"></script>
-    <script src="../../assets/js/register.js"></script>
+
 </body>
 
 </html>
