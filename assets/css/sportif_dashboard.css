@@ -1,0 +1,78 @@
+.dashboard-stat-card {
+  transition: all 0.3s ease;
+}
+
+.dashboard-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.activity-bar {
+  transition: height 1s ease-out;
+  height: 0; /* Animate to actual height */
+}
+
+.upcoming-card {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(6, 182, 212, 0.1)
+  );
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.metric-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.metric-circle svg {
+  transform: rotate(-90deg);
+}
+
+.metric-circle circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.metric-track {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.metric-fill {
+  stroke: #3b82f6;
+  stroke-dasharray: 251.2; /* 2 * PI * 40 */
+  stroke-dashoffset: 251.2; /* Start empty */
+  transition: stroke-dashoffset 1.5s ease-out;
+}
+
+/* Quick Action Buttons */
+.quick-action-btn {
+  transition: all 0.2s ease;
+}
+
+.quick-action-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Timeline */
+.timeline-item {
+  position: relative;
+  padding-left: 2rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 0.5rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 1);
+}
