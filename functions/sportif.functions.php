@@ -168,5 +168,20 @@ function updateSportifProfile(int $userId, string $firstname, string $lastname, 
     return $stmt->execute();
 }
 
+function deleteSportifAccount(int $userId): bool
+{
+    global $conn;
 
+    $conn->begin_transaction();
 
+    try {
+      
+
+        $conn->commit();
+        return true;
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log("Delete account error: " . $e->getMessage());
+        return false;
+    }
+}
