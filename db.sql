@@ -123,7 +123,7 @@ CREATE TABLE reviews (
         ON DELETE CASCADE
 );
 
-
+-- STATUSES
 INSERT INTO statuses (name) VALUES
 ('pending'),
 ('confirmed'),
@@ -135,3 +135,45 @@ CREATE INDEX idx_users_role ON users(role_id);
 CREATE INDEX idx_reservations_coach ON reservations(coach_id);
 CREATE INDEX idx_reservations_sportif ON reservations(sportif_id);
 CREATE INDEX idx_availabilities_coach ON availabilities(coach_id);
+
+
+-- INSERT DATA
+
+-- ROLES
+INSERT INTO roles (name) VALUES
+('coach'),
+('sportif');
+
+-- USERS
+INSERT INTO users (role_id, firstname, lastname, email, password, phone) VALUES
+(1, 'Hamza', 'Lafsioui', 'hamza.coach@email.com', '11111111', '0612345678'),
+(2, 'Sara', 'Sportif', 'sara.sportif@email.com', '11111111', '0698765432');
+
+-- COACH PROFILE
+INSERT INTO coach_profiles (user_id, bio, experience_years, certifications, photo, rating_avg) VALUES
+(1, 'Professional fitness coach', 5, 'Certified Personal Trainer', 'hamza.jpg', 4.50);
+
+-- SPORTS
+INSERT INTO sports (name) VALUES
+('Football'),
+('Fitness'),
+('Yoga');
+
+-- COACH SPORTS
+INSERT INTO coach_sports (coach_id, sport_id) VALUES
+(1, 2),
+(1, 3);
+
+-- AVAILABILITIES
+INSERT INTO availabilities (coach_id, date, start_time, end_time) VALUES
+(1, '2025-01-20', '09:00:00', '11:00:00'),
+(1, '2025-01-21', '14:00:00', '16:00:00');
+
+
+-- RESERVATION
+INSERT INTO reservations (sportif_id, coach_id, availability_id, status_id, price) VALUES
+(2, 1, 1, 2, 200.00);
+
+-- REVIEW
+INSERT INTO reviews (reservation_id, author_id, rating, comment) VALUES
+(1, 2, 5, 'Great coaching session!');
