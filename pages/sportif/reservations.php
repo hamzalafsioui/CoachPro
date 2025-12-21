@@ -1,50 +1,18 @@
 <?php
 session_start();
+require_once '../../functions/reservation.functions.php';
 
-// Mock data
+// Check if user is logged in
+if (!isset($_SESSION['user'])) {
+    header('Location: ../../index.php');
+    exit();
+}
+
+$user = $_SESSION['user'];
+$sportif_id = $user['id'];
+
 $page_title = "My Bookings";
-$reservations = [
-    [
-        'id' => 101,
-        'coach' => 'Coach Alex',
-        'avatar' => 'CA',
-        'type' => 'Personal Training',
-        'date' => '2023-12-20',
-        'time' => '10:00 - 11:00',
-        'status' => 'pending',
-        'price' => '$50.00'
-    ],
-    [
-        'id' => 102,
-        'coach' => 'Coach Sarah',
-        'avatar' => 'CS',
-        'type' => 'HIIT Session',
-        'date' => '2023-12-21',
-        'time' => '14:00 - 15:00',
-        'status' => 'confirmed',
-        'price' => '$45.00'
-    ],
-    [
-        'id' => 103,
-        'coach' => 'Coach Mike',
-        'avatar' => 'CM',
-        'type' => 'Strength Training',
-        'date' => '2023-12-19',
-        'time' => '09:00 - 10:30',
-        'status' => 'completed',
-        'price' => '$75.00'
-    ],
-    [
-        'id' => 104,
-        'coach' => 'Coach Emma',
-        'avatar' => 'CE',
-        'type' => 'Cardio Blast',
-        'date' => '2023-12-22',
-        'time' => '16:00 - 17:00',
-        'status' => 'cancelled',
-        'price' => '$40.00'
-    ]
-];
+$reservations = getSportifReservations($sportif_id);
 ?>
 
 <!DOCTYPE html>
