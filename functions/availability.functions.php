@@ -79,3 +79,44 @@ function deleteAvailability($availabilityId)
 
     return $stmt->execute();
 }
+
+function getCoachRecurringSchedule(int $coachId): array
+{
+    global $conn;
+
+    $sql = "SELECT day_of_week, start_time, end_time FROM coach_recurring_slots WHERE coach_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $coachId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $schedule = [
+        'monday' => ['active' => false, 'slots' => []],
+        'tuesday' => ['active' => false, 'slots' => []],
+        'wednesday' => ['active' => false, 'slots' => []],
+        'thursday' => ['active' => false, 'slots' => []],
+        'friday' => ['active' => false, 'slots' => []],
+        'saturday' => ['active' => false, 'slots' => []],
+        'sunday' => ['active' => false, 'slots' => []],
+    ];
+
+    while ($row = $result->fetch_assoc()) {
+        $day = $row['day_of_week'];
+        $schedule[$day]['active'] = true;
+        $schedule[$day]['slots'][] = [
+            date('H:i', strtotime($row['start_time'])),
+            date('H:i', strtotime($row['end_time']))
+        ];
+    }
+
+    return $schedule;
+}
+
+function saveCoachAvailability(int $coachId, array $schedule): bool
+{
+    global $conn;
+
+
+
+    return false;
+}
