@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once '../../functions/coach.functions.php';
+require_once '../../functions/availability.functions.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user'])) {
@@ -8,33 +10,47 @@ if (!isset($_SESSION['user'])) {
 }
 
 $user = $_SESSION['user'];
+$sportif_id = $user['id'];
 
-// Mock Coach Detail Data
-$coach_id = isset($_GET['id']) ? $_GET['id'] : 1; // Default to ID 1 if not set
-$coach = [
-    'id' => 1,
-    'name' => 'Coach Alex Doe',
-    'rating' => 4.8,
-    'reviews_count' => 124,
-    'hourly_rate' => '$50.00',
-    'specialties' => ['Personal Training', 'Crossfit', 'Nutrition'],
-    'bio' => 'Certified personal trainer with 5 years of experience helping people achieve their fitness goals. I specialize in high-intensity interval training and personalized nutrition plans to maximize your results.',
-    'certifications' => ['NASM Certified Personal Trainer', 'CrossFit Level 1'],
-    'image' => 'fas fa-user-ninja'
-];
+$coach_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$coach = getCoachProfileWithSports($coach_id);
+
+if (!$coach) {
+    header('Location: coaches.php');
+    exit();
+}
+
+$raw_availabilities = getCoachAvailabilities($coach_id);
+$availability_by_date = [];
+
+foreach ($raw_availabilities as $row) {
+    if (!$row['is_available']) continue;
+
+    // Only show slots from today onwards
+    if (strtotime($row['date']) < strtotime(date('Y-m-d'))) continue;
+
+    $date_key = $row['date'];
+    if (!isset($availability_by_date[$date_key])) {
+        $availability_by_date[$date_key] = [];
+    }
+
+    $availability_by_date[$date_key][] = [
+        'id' => $row['id'],
+        'time' => date('H:i', strtotime($row['start_time'])),
+        'date' => $row['date']
+    ];
+}
+
+// Sort by date key
+ksort($availability_by_date);
+// L
+$availability_by_date = array_slice($availability_by_date, 0, 14, true);
 
 // Mock Reviews
 $reviews = [
     ['user' => 'John D.', 'rating' => 5, 'comment' => 'Amazing coach! Pushed me to my limits.', 'date' => '2 days ago'],
     ['user' => 'Sarah W.', 'rating' => 4, 'comment' => 'Great session, very knowledgeable.', 'date' => '1 week ago'],
     ['user' => 'Mike P.', 'rating' => 5, 'comment' => 'Best trainer I have ever had.', 'date' => '2 weeks ago']
-];
-
-// Mock Schedule (slots)
-$availability = [
-    'Morning' => ['08:00', '09:00', '10:00'],
-    'Afternoon' => ['14:00', '15:00', '16:00'],
-    'Evening' => ['18:00', '19:00']
 ];
 ?>
 
@@ -54,7 +70,7 @@ $availability = [
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/sportif_coach_details.css">
-    <link rel="stylesheet" href="../../assets/css/sportif_profile.css"> <!-- Reusing glass panel styles -->
+    <link rel="stylesheet" href="../../assets/css/sportif_profile.css"> 
 
     <!-- Global Tailwind Config -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -210,18 +226,31 @@ $availability = [
                         </div>
                     </div>
 
-                    <?php foreach ($availability as $period => $slots): ?>
-                        <div class="mb-6">
-                            <h4 class="text-gray-400 text-sm font-bold uppercase tracking-wide mb-3"><?php echo $period; ?></h4>
-                            <div class="schedule-grid">
-                                <?php foreach ($slots as $slot): ?>
-                                    <button class="time-slot px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 font-medium hover:text-white" data-time="<?php echo $slot; ?>">
-                                        <?php echo $slot; ?>
-                                    </button>
-                                <?php endforeach; ?>
-                            </div>
+                    <?php if (empty($availability_by_date)): ?>
+                        <div class="text-center py-12 glass-panel rounded-2xl">
+                            <i class="fas fa-calendar-times text-4xl text-gray-600 mb-4 block"></i>
+                            <p class="text-gray-400">No available slots found for the next two weeks.</p>
                         </div>
-                    <?php endforeach; ?>
+                    <?php else: ?>
+                        <?php foreach ($availability_by_date as $date => $slots): ?>
+                            <div class="mb-8">
+                                <h4 class="text-white font-bold mb-4 flex items-center gap-2">
+                                    <i class="fas fa-calendar-day text-blue-400"></i>
+                                    <?php echo date('l, M j', strtotime($date)); ?>
+                                </h4>
+                                <div class="schedule-grid">
+                                    <?php foreach ($slots as $slot): ?>
+                                        <button class="time-slot px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-gray-300 font-medium hover:text-white transition-all hover:border-blue-500/50 active:scale-95"
+                                            data-time="<?php echo $slot['time']; ?>"
+                                            data-date="<?php echo $slot['date']; ?>"
+                                            data-id="<?php echo $slot['id']; ?>">
+                                            <?php echo $slot['time']; ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
 
                 <div id="reviews-content" class="content-section hidden space-y-6 animate-fade-in">
@@ -275,7 +304,7 @@ $availability = [
 
     <!-- Specific JS -->
     <script src="../../assets/js/sportif_coach_details.js"></script>
-   
+
 </body>
 
 </html>
