@@ -1,50 +1,23 @@
 <?php
 session_start();
 
-// Mock data
-$page_title = "My Reservations";
-$reservations = [
-    [
-        'id' => 101,
-        'client' => 'John Doe',
-        'avatar' => 'JD',
-        'type' => 'Personal Training',
-        'date' => '2023-12-20',
-        'time' => '10:00 - 11:00',
-        'status' => 'pending',
-        'price' => '$50.00'
-    ],
-    [
-        'id' => 102,
-        'client' => 'Sarah Smith',
-        'avatar' => 'SS',
-        'type' => 'HIIT Session',
-        'date' => '2023-12-21',
-        'time' => '14:00 - 15:00',
-        'status' => 'confirmed',
-        'price' => '$45.00'
-    ],
-    [
-        'id' => 103,
-        'client' => 'Mike Johnson',
-        'avatar' => 'MJ',
-        'type' => 'Strength Training',
-        'date' => '2023-12-19',
-        'time' => '09:00 - 10:30',
-        'status' => 'completed',
-        'price' => '$75.00'
-    ],
-    [
-        'id' => 104,
-        'client' => 'Emma Wilson',
-        'avatar' => 'EW',
-        'type' => 'Cardio Blast',
-        'date' => '2023-12-22',
-        'time' => '16:00 - 17:00',
-        'status' => 'cancelled',
-        'price' => '$40.00'
-    ]
-];
+require_once '../../functions/reservation.functions.php';
+require_once '../../functions/coach.functions.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../../index.php');
+    exit;
+}
+
+// Get Coach ID
+$coachId = getCoachIdByUserId($_SESSION['user_id']);
+
+if (!$coachId) {
+    $reservations = [];
+} else {
+    $reservations = getCoachReservations($coachId);
+}
 ?>
 
 <!DOCTYPE html>
@@ -79,12 +52,12 @@ $reservations = [
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden glass-panel" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <?php require '../../includes/coach_sidebar.php'; ?>
+    <?php require_once '../../includes/coach_sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="flex-1 w-full overflow-y-auto h-screen scroll-smooth">
         <!-- Top Bar -->
-        <?php include '../../includes/header.php'; ?>
+        <?php require_once '../../includes/header.php'; ?>
 
         <div class="p-8 max-w-7xl mx-auto space-y-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
