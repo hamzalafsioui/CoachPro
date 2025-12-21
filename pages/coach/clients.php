@@ -1,50 +1,27 @@
 <?php
 session_start();
 
-// Mock data
+require_once '../../functions/coach.functions.php';
+require_once '../../functions/client.functions.php';
+
+// Authentication Check
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'coach') {
+    header("Location: ../auth/login.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$coach_profile = getCoachProfile($user_id);
+
+if (!$coach_profile) {
+    // coach profile doesn't exist yet
+    $clients = [];
+} else {
+    $coach_id = $coach_profile['id'];
+    $clients = getCoachClients($coach_id);
+}
+
 $page_title = "My Clients";
-$clients = [
-    [
-        'id' => 1,
-        'name' => 'John Doe',
-        'avatar' => 'JD',
-        'status' => 'active',
-        'plan' => 'Premium - Personal Training',
-        'join_date' => 'Oct 15, 2023',
-        'progress' => 75,
-        'last_session' => '2 days ago'
-    ],
-    [
-        'id' => 2,
-        'name' => 'Sarah Smith',
-        'avatar' => 'SS',
-        'status' => 'active',
-        'plan' => 'Standard - HIIT',
-        'join_date' => 'Nov 02, 2023',
-        'progress' => 45,
-        'last_session' => 'Yesterday'
-    ],
-    [
-        'id' => 3,
-        'name' => 'Mike Johnson',
-        'avatar' => 'MJ',
-        'status' => 'inactive',
-        'plan' => 'Basic - Strength',
-        'join_date' => 'Sep 10, 2023',
-        'progress' => 90,
-        'last_session' => '2 weeks ago'
-    ],
-    [
-        'id' => 4,
-        'name' => 'Emma Wilson',
-        'avatar' => 'EW',
-        'status' => 'active',
-        'plan' => 'Premium - Cardio',
-        'join_date' => 'Dec 01, 2023',
-        'progress' => 20,
-        'last_session' => 'Today'
-    ]
-];
 ?>
 
 <!DOCTYPE html>
@@ -76,12 +53,12 @@ $clients = [
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden glass-panel" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <?php require '../../includes/coach_sidebar.php'; ?>
+    <?php require_once '../../includes/coach_sidebar.php'; ?>
 
     <!-- Main Content -->
     <main class="flex-1 w-full overflow-y-auto h-screen scroll-smooth">
         <!-- Top Bar -->
-        <?php include '../../includes/header.php'; ?>
+        <?php require_once '../../includes/header.php'; ?>
 
         <div class="p-8 max-w-7xl mx-auto space-y-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -97,73 +74,97 @@ $clients = [
                 </div>
             </div>
 
-            <!-- Clients Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <?php foreach ($clients as $client): ?>
-                    <div class="glass-panel p-6 rounded-2xl client-card flex flex-col h-full" data-name="<?php echo htmlspecialchars($client['name']); ?>" data-plan="<?php echo htmlspecialchars($client['plan']); ?>">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-4">
-                                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-xl font-bold text-white shadow-lg">
-                                    <?php echo $client['avatar']; ?>
+            <?php if (empty($clients)): ?>
+                <div class="glass-panel p-12 rounded-2xl text-center">
+                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-users text-3xl text-gray-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">No Clients Yet</h3>
+                    <p class="text-gray-400 max-w-md mx-auto">Clients will appear here once they book a session with you. Share your profile to get started!</p>
+                </div>
+            <?php else: ?>
+                <!-- Clients Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <?php foreach ($clients as $client): ?>
+                        <div class="glass-panel p-6 rounded-2xl client-card flex flex-col h-full" data-name="<?php echo htmlspecialchars($client['name']); ?>" data-plan="<?php echo htmlspecialchars($client['plan']); ?>">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-xl font-bold text-white shadow-lg">
+                                        <?php echo $client['avatar']; ?>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white text-lg"><?php echo htmlspecialchars($client['name']); ?></h3>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="status-badge status-<?php echo $client['status']; ?> text-xs">
+                                                <?php echo ucfirst($client['status']); ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <button class="text-gray-400 hover:text-white transition-colors">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+
+                            <div class="space-y-4 flex-1">
                                 <div>
-                                    <h3 class="font-bold text-white text-lg"><?php echo htmlspecialchars($client['name']); ?></h3>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="status-badge status-<?php echo $client['status']; ?> text-xs">
-                                            <?php echo ucfirst($client['status']); ?>
-                                        </span>
+                                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Current Plan</p>
+                                    <p class="text-gray-300"><?php echo htmlspecialchars($client['plan']); ?></p>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-500 font-semibold uppercase">Progress</span>
+                                        <span class="text-blue-400"><?php echo $client['progress']; ?>%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-value" style="width: <?php echo $client['progress']; ?>%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4 pt-2">
+                                    <div>
+                                        <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Joined</p>
+                                        <p class="text-gray-300 text-sm"><?php echo $client['join_date']; ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Last Session</p>
+                                        <p class="text-gray-300 text-sm"><?php echo $client['last_session']; ?></p>
                                     </div>
                                 </div>
                             </div>
-                            <button class="text-gray-400 hover:text-white transition-colors">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                        </div>
 
-                        <div class="space-y-4 flex-1">
-                            <div>
-                                <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Current Plan</p>
-                                <p class="text-gray-300"><?php echo htmlspecialchars($client['plan']); ?></p>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-gray-500 font-semibold uppercase">Progress</span>
-                                    <span class="text-blue-400"><?php echo $client['progress']; ?>%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-value" style="width: <?php echo $client['progress']; ?>%"></div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4 pt-2">
-                                <div>
-                                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Joined</p>
-                                    <p class="text-gray-300 text-sm"><?php echo $client['join_date']; ?></p>
-                                </div>
-                                <div>
-                                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Last Session</p>
-                                    <p class="text-gray-300 text-sm"><?php echo $client['last_session']; ?></p>
-                                </div>
+                            <div class="mt-6 flex gap-3">
+                                <button onclick="messageClient(<?php echo $client['id']; ?>)" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-comment-alt"></i> Message
+                                </button>
+                                <button onclick="openClientModal(<?php echo $client['id']; ?>)" class="flex-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-500/30">
+                                    Details
+                                </button>
                             </div>
                         </div>
-
-                        <div class="mt-6 flex gap-3">
-                            <button onclick="messageClient(<?php echo $client['id']; ?>)" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                                <i class="fas fa-comment-alt"></i> Message
-                            </button>
-                            <button onclick="openClientModal(<?php echo $client['id']; ?>)" class="flex-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-500/30">
-                                Details
-                            </button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </main>
 
     <!-- JS -->
     <script src="../../assets/js/coach_clients.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 
 </html>
